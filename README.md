@@ -79,3 +79,5 @@ docker run -p 8501:8501 chesslens
 
 ## 📜 License
 [MIT License](LICENSE)
+
+<!-- note --> (1)
