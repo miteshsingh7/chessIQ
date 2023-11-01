@@ -16,3 +16,5 @@ PIECE_NAMES = {
 CP_CAP = 900  # cap at 900 — anything above is effectively a game-ending blunder
 
 # update (5)
+
+# update (6)
