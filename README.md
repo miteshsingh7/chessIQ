@@ -85,3 +85,5 @@ docker run -p 8501:8501 chesslens
 <!-- note --> (3)
 
 <!-- note --> (4)
+
+<!-- note --> (7)
