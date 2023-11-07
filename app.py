@@ -536,3 +536,5 @@ if data_exists(username):
 else:
     st.info(f"No analysis found for **{username}** yet. Click **Analyze My Games** in the sidebar to start.")
 # layout tweak (2)
+
+# layout tweak (8)
