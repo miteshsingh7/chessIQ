@@ -28,3 +28,5 @@ CP_CAP = 900  # cap at 900 — anything above is effectively a game-ending blund
 # update (18)
 
 # update (19)
+
+# update (20)
