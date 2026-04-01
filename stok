@@ -1,0 +1,206 @@
+import chess
+import chess.engine
+import pandas as pd
+import os
+import concurrent.futures
+from tqdm import tqdm
+
+# ── Config ──────────────────────────────────────────────────────────────────────
+STOCKFISH_PATH = "/usr/local/bin/stockfish"   # <-- Update this
+
+# Two-pass depths:
+# Pass 1: quick shallow scan to find candidate mistakes
+# Pass 2: deep analysis ONLY on moves that look suspicious from pass 1
+QUICK_DEPTH   = 6    # very fast — just finds obvious mistakes
+DEEP_DEPTH    = 10   # only applied to suspicious moves
+
+# A move needs cp_loss > this threshold in pass 1 to get deep analysis
+SUSPICION_THRESHOLD = 40   # cp — lower = more moves get deep analysis
+
+# How many parallel Stockfish workers to use
+# Set to number of CPU cores you have minus 1 (so your laptop doesn't freeze)
+# Mac M1/M2: 4 workers is fine. Intel i5/i7: 3 workers.
+NUM_WORKERS = 4
+
+# Only analyze the most recent N games (None = all games)
+# 300 rapid games = ~12,000 moves = enough for excellent insights
+MAX_GAMES = 300
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────────
+
+def classify_mistake(cp_loss) -> str:
+    if cp_loss is None:
+        return "unknown"
+    if cp_loss < 0:
+        return "good"
+    elif cp_loss < 50:
+        return "good"
+    elif cp_loss < 100:
+        return "inaccuracy"
+    elif cp_loss < 300:
+        return "mistake"
+    else:
+        return "blunder"
+
+
+def eval_to_cp(score, player_color: chess.Color):
+    """Convert Stockfish score to centipawns from the player's perspective."""
+    if score is None:
+        return None
+    s = score.white()
+    if s.is_mate():
+        raw = 3000 if s.mate() > 0 else -3000
+    else:
+        raw = s.score()
+    return raw if player_color == chess.WHITE else -raw
+
+
+def evaluate_move(row_dict: dict) -> dict:
+    """
+    Two-pass evaluation for a single move.
+    Pass 1: quick depth → if cp_loss > threshold, do pass 2 at full depth.
+    Runs inside a worker process — opens its own Stockfish instance.
+    """
+    fen        = row_dict["fen"]
+    move_uci   = row_dict["move_uci"]
+    color      = chess.WHITE if row_dict["player_color"] == "white" else chess.BLACK
+
+    try:
+        board = chess.Board(fen)
+        move  = chess.Move.from_uci(move_uci)
+
+        with chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH) as engine:
+
+            # ── Pass 1: quick scan ───────────────────────────────────────────
+            info_before_q = engine.analyse(board, chess.engine.Limit(depth=QUICK_DEPTH))
+            cp_before_q   = eval_to_cp(info_before_q["score"], color)
+            best_move_q   = info_before_q.get("pv", [None])[0]
+
+            board_after = board.copy()
+            board_after.push(move)
+            info_after_q = engine.analyse(board_after, chess.engine.Limit(depth=QUICK_DEPTH))
+            cp_after_q   = eval_to_cp(info_after_q["score"], color)
+
+            cp_loss_q = (cp_before_q - cp_after_q) if (cp_before_q is not None and cp_after_q is not None) else None
+
+            # ── Pass 2: deep analysis only if suspicious ─────────────────────
+            if cp_loss_q is not None and cp_loss_q >= SUSPICION_THRESHOLD:
+                info_before_d = engine.analyse(board, chess.engine.Limit(depth=DEEP_DEPTH))
+                cp_before     = eval_to_cp(info_before_d["score"], color)
+                best_move_obj = info_before_d.get("pv", [None])[0]
+
+                board_after2 = board.copy()
+                board_after2.push(move)
+                info_after_d = engine.analyse(board_after2, chess.engine.Limit(depth=DEEP_DEPTH))
+                cp_after     = eval_to_cp(info_after_d["score"], color)
+            else:
+                # Move looks fine — use quick results, no deep needed
+                cp_before     = cp_before_q
+                cp_after      = cp_after_q
+                best_move_obj = best_move_q
+
+            cp_loss       = (cp_before - cp_after) if (cp_before is not None and cp_after is not None) else None
+            best_move_uci = best_move_obj.uci() if best_move_obj else None
+
+    except Exception as e:
+        return {
+            **row_dict,
+            "eval_before":  None,
+            "eval_after":   None,
+            "cp_loss":      None,
+            "best_move":    None,
+            "played_best":  False,
+            "mistake_type": "unknown",
+        }
+
+    return {
+        **row_dict,
+        "eval_before":  cp_before,
+        "eval_after":   cp_after,
+        "cp_loss":      cp_loss,
+        "best_move":    best_move_uci,
+        "played_best":  (best_move_uci == move_uci),
+        "mistake_type": classify_mistake(cp_loss),
+    }
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────────
+
+def add_engine_evaluations(
+    moves_path:  str,
+    output_path: str,
+    resume:      bool = True,
+):
+    df = pd.read_parquet(moves_path)
+
+    # ── Limit to most recent MAX_GAMES games ────────────────────────────────────
+    if MAX_GAMES is not None:
+        all_games = df["game_id"].unique()
+        recent_games = all_games[-MAX_GAMES:]          # last N games
+        df = df[df["game_id"].isin(recent_games)]
+        print(f"Limiting to {len(recent_games)} most recent games ({len(df)} moves)")
+
+    # ── Resume: skip already evaluated moves ────────────────────────────────────
+    if resume and os.path.exists(output_path):
+        existing = pd.read_parquet(output_path)
+        done = set(zip(existing["game_id"], existing["move_number"]))
+        df_todo = df[~df.apply(lambda r: (r["game_id"], r["move_number"]) in done, axis=1)]
+        print(f"Resuming: {len(df_todo)} moves left (already done: {len(existing)})")
+    else:
+        existing  = pd.DataFrame()
+        df_todo   = df
+
+    if df_todo.empty:
+        print("Nothing to evaluate — all moves already done.")
+        return pd.read_parquet(output_path)
+
+    rows = df_todo.to_dict("records")
+
+    # ── Parallel evaluation ──────────────────────────────────────────────────────
+    print(f"\nEvaluating {len(rows)} moves using {NUM_WORKERS} parallel Stockfish workers...")
+    print(f"Quick depth: {QUICK_DEPTH} | Deep depth: {DEEP_DEPTH} | Suspicion threshold: {SUSPICION_THRESHOLD}cp\n")
+
+    results = []
+    with concurrent.futures.ProcessPoolExecutor(max_workers=NUM_WORKERS) as executor:
+        futures = {executor.submit(evaluate_move, row): row for row in rows}
+        for future in tqdm(concurrent.futures.as_completed(futures), total=len(rows), desc="Evaluating"):
+            try:
+                results.append(future.result())
+            except Exception as e:
+                # If a worker crashes, still record the row with unknown values
+                original = futures[future]
+                results.append({
+                    **original,
+                    "eval_before": None, "eval_after": None,
+                    "cp_loss": None, "best_move": None,
+                    "played_best": False, "mistake_type": "unknown",
+                })
+
+    new_df = pd.DataFrame(results)
+
+    # ── Merge with already-done rows ─────────────────────────────────────────────
+    if not existing.empty:
+        final_df = pd.concat([existing, new_df], ignore_index=True)
+    else:
+        final_df = new_df
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    final_df.to_parquet(output_path, index=False)
+
+    print(f"\nDone. {len(final_df)} moves saved to {output_path}")
+    print("\nMistake distribution:")
+    print(final_df["mistake_type"].value_counts().to_string())
+
+    return final_df
+
+
+# ── Guard required for multiprocessing on Mac/Windows ────────────────────────────
+if __name__ == "__main__":
+    import sys
+    username = sys.argv[1] if len(sys.argv) > 1 else "player"
+    add_engine_evaluations(
+        moves_path=f"data/{username}/moves.parquet",
+        output_path=f"data/{username}/moves_evaluated.parquet",
+        resume=True,
+    )
