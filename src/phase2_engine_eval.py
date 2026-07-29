@@ -6,7 +6,11 @@ import sys
 import shutil
 import json
 from tqdm import tqdm
-from constants import PIECE_VALUE, CP_CAP
+try:
+    from src.constants import PIECE_VALUE, CP_CAP
+except ImportError:
+    from constants import PIECE_VALUE, CP_CAP
+
 
 # ── Config ────────────────────────────────────────────────────────────────────────
 

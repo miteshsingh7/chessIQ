@@ -3,7 +3,11 @@ import pandas as pd
 import numpy as np
 import os
 from tqdm import tqdm
-from constants import PIECE_VALUE
+try:
+    from src.constants import PIECE_VALUE
+except ImportError:
+    from constants import PIECE_VALUE
+
 
 
 # ── Game Phase Detection ────────────────────────────────────────────────────────

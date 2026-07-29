@@ -2,7 +2,11 @@ import chess
 import pandas as pd
 import os
 from tqdm import tqdm
-from constants import PIECE_VALUE, PIECE_NAMES, CP_CAP
+try:
+    from src.constants import PIECE_VALUE, PIECE_NAMES, CP_CAP
+except ImportError:
+    from constants import PIECE_VALUE, PIECE_NAMES, CP_CAP
+
 
 
 # ── Tactic Detectors ──────────────────────────────────────────────────────────────

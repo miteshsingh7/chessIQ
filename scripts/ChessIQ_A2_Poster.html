@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChessIQ Poster</title>
+    <style>
+        /* A2 Dimensions: 420 x 594 mm (Portrait) */
+        @page {
+            size: A2 portrait;
+            margin: 0;
+        }
+
+        :root {
+            --primary-bg: #ffffff;
+            --header-bg: #002147; /* Typical academic dark blue */
+            --header-text: #ffffff;
+            --section-header-bg: #003366;
+            --section-header-text: #ffffff;
+            --box-bg: #f8f9fa;
+            --border-color: #002147;
+            --text-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .poster {
+            width: 420mm;
+            height: 594mm;
+            background-color: var(--primary-bg);
+            padding: 15mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 10mm;
+        }
+
+        /* HEADER SECTION */
+        .header {
+            text-align: center;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 10mm;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5mm;
+            border: 3px solid var(--border-color);
+        }
+
+        .university-info h1 {
+            font-size: 32pt;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .university-info h3 {
+            font-size: 18pt;
+            font-weight: normal;
+        }
+
+        .session-info {
+            font-size: 16pt;
+            font-weight: bold;
+        }
+
+        .project-title {
+            font-size: 36pt;
+            font-weight: bold;
+            margin: 5mm 0;
+            color: #ffd700; /* Gold color for emphasis */
+        }
+
+        .student-supervisor {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16pt;
+            margin-top: 5mm;
+            padding: 0 10mm;
+        }
+
+        .student-details, .supervisor-details {
+            text-align: left;
+        }
+
+        /* MAIN CONTENT - 2 Columns Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10mm;
+            flex: 1;
+        }
+
+        /* INDIVIDUAL COLUMNS */
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 10mm;
+        }
+
+        /* SECTION STYLING */
+        .section {
+            background-color: var(--box-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            background-color: var(--section-header-bg);
+            color: var(--section-header-text);
+            padding: 5mm;
+            font-size: 20pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .section-content {
+            padding: 6mm;
+            font-size: 14pt;
+            line-height: 1.5;
+            color: var(--text-color);
+            flex: 1;
+        }
+
+        .section-content ul {
+            margin-left: 8mm;
+            margin-top: 3mm;
+        }
+
+        .section-content li {
+            margin-bottom: 2mm;
+        }
+
+        .section-content p {
+            margin-bottom: 4mm;
+        }
+
+        /* Utilities */
+        .center-img {
+            display: block;
+            margin: 0 auto;
+            max-width: 90%;
+            border: 1px solid #ccc;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="poster" id="poster">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="university-info">
+                <h1>DELHI TECHNICAL CAMPUS</h1>
+                <h3>Affiliated to GGSIPU, New Delhi | NAAC-A++ | Greater Noida</h3>
+            </div>
+            <div class="session-info">Session - 2025 - 26</div>
+            <div class="project-title">
+                ChessIQ: An Intelligent Chess Mistake Analyzer
+            </div>
+            <div class="student-supervisor">
+                <div class="student-details">
+                    <strong>Student's Name:</strong> Mitesh Kumar Singh<br>
+                    <strong>Enrollment No.:</strong> 03218002722
+                </div>
+                <div class="supervisor-details">
+                    <strong>Supervisor Name:</strong> Ms. Rachana Sharma<br>
+                    <strong>Batch:</strong> CSE (2022-2026)
+                </div>
+            </div>
+        </div>
+
+        <!-- TWO COLUMN LAYOUT -->
+        <div class="main-content">
+            <!-- COLUMN 1 -->
+            <div class="column">
+                
+                <div class="section">
+                    <div class="section-title">Introduction</div>
+                    <div class="section-content">
+                        <p>In modern chess training, identifying strategic mistakes requires deep analytical insight. ChessIQ is an advanced digital platform designed to help players analyze their games efficiently. By integrating a sophisticated chess engine with an intuitive interface, ChessIQ provides actionable feedback on positional errors and tactical blunders.</p>
+                        <p>It allows players of all skill levels to upload their PGNs, review critical moments, and improve their understanding through interactive, engine-backed insights.</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Objectives</div>
+                    <div class="section-content">
+                        <p>The primary objectives of the ChessIQ system include:</p>
+                        <ul>
+                            <li><strong>Automated Mistake Detection:</strong> To accurately detect blunders, mistakes, and inaccuracies in recorded games.</li>
+                            <li><strong>Interactive Analysis:</strong> Provide a visual chessboard interface for users to step through variations and alternative moves.</li>
+                            <li><strong>Accessibility:</strong> Create an inclusive, user-friendly platform that does not require deep technical knowledge to operate.</li>
+                            <li><strong>Performance Optimization:</strong> Ensure real-time processing and rapid evaluation of positions using optimized search algorithms.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Feasibility Study and Tools Used</div>
+                    <div class="section-content">
+                        <p>The system is designed to be highly scalable and operationally viable using open-source technologies.</p>
+                        <p><strong>Tools and Technologies:</strong></p>
+                        <ul>
+                            <li><strong>Frontend:</strong> React.js, Tailwind CSS for a modern, responsive UI.</li>
+                            <li><strong>Backend/Logic:</strong> Python, python-chess for game parsing and move validation.</li>
+                            <li><strong>Engine Integration:</strong> Stockfish engine via UCI protocol.</li>
+                            <li><strong>Database:</strong> Firebase/MongoDB for storing user game history and analysis.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLUMN 2 -->
+            <div class="column">
+                
+                <div class="section" style="flex: 1.5;">
+                    <div class="section-title">System Architecture</div>
+                    <div class="section-content">
+                        <p>The system follows a modular architecture separating the presentation, processing, and analytical layers:</p>
+                        <ul>
+                            <li><strong>Presentation Layer:</strong> A React-based web interface handling user interactions and displaying the interactive chessboard.</li>
+                            <li><strong>Application Layer:</strong> A Python backend utilizing FastAPI that processes PGN files and orchestrates engine evaluation requests.</li>
+                            <li><strong>Analysis Engine:</strong> Stockfish acts as the core analytical engine, calculating centipawn loss and move quality.</li>
+                        </ul>
+                        <!-- Placeholder for Architecture Diagram -->
+                        <div style="width: 100%; height: 150px; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; border: 1px dashed #999; margin-top: 10px;">
+                            <em>[System Architecture Diagram Placeholder]</em>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Design and Implementation</div>
+                    <div class="section-content">
+                        <p>The implementation involved designing a structured data flow where user games (PGNs) are parsed and evaluated move-by-move. The platform emphasizes clean code principles and leverages RESTful APIs to decouple the React frontend from the Python backend.</p>
+                        <p>Evaluation thresholds were defined to categorize moves: Blunder (&gt;2.0 pawns), Mistake (1.0 to 2.0 pawns), and Inaccuracy (0.5 to 1.0 pawns).</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Result & Conclusion</div>
+                    <div class="section-content">
+                        <p><strong>Results:</strong> The deployed ChessIQ platform successfully analyzes games in real-time. Testing on varied PGN data showed high accuracy in mistake identification and reliable engine synchronization without noticeable latency.</p>
+                        <p><strong>Conclusion:</strong> ChessIQ successfully achieves its goal of bridging the gap between raw engine output and human-understandable chess insights. It serves as an accessible, high-performance tool for chess enthusiasts to continuously improve their skills through targeted analysis.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
