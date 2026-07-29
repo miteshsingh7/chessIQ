@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+
+# Data — user data should live in a Docker volume, not the image
+data/
+
+# Models — large binary files; mount as volume or download at runtime
+models/
+
+# macOS
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Dev tools
+.venv/
+venv/
+.env
+*.log
+
+# Streamlit local config
+.streamlit/secrets.toml
+
+# The raw stockfish binary in the repo root (we use the apt-installed one)
+stok

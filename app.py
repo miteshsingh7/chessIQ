@@ -6,6 +6,11 @@ import json
 import re
 import traceback
 from PIL import Image
+import chess
+import chess.svg
+
+# Add src package directory to path
+sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
 st.set_page_config(
     page_title="ChessLens",
@@ -110,7 +115,11 @@ with st.sidebar:
     st.markdown("### 🎛️ Analysis Mode")
 
     # Stockfish path — shown only if not auto-detected
-    import phase2_engine_eval as _p2_check
+    try:
+        import src.phase2_engine_eval as _p2_check
+    except ImportError:
+        import phase2_engine_eval as _p2_check
+
     import shutil as _shutil
     _sf_ok = _shutil.which(_p2_check.STOCKFISH_PATH) or __import__('os').path.isfile(_p2_check.STOCKFISH_PATH)
     if not _sf_ok:
@@ -240,7 +249,11 @@ if run_button:
     failed = False
 
     # Phase 1a — Fetch games
-    from phase1_fetch_games import fetch_all_games
+    try:
+        from src.phase1_fetch_games import fetch_all_games
+    except ImportError:
+        from phase1_fetch_games import fetch_all_games
+
     result = run_phase("Phase 1a — Fetching games from Chess.com",
         fetch_all_games, progress, status, 12,
         username=username, output_dir='data/raw_pgn')
@@ -249,7 +262,11 @@ if run_button:
 
     # Phase 1b — Parse PGN (cap to max_games most-recent games for speed)
     if not failed:
-        from phase1_parse_pgn import parse_all_pgn_files
+        try:
+            from src.phase1_parse_pgn import parse_all_pgn_files
+        except ImportError:
+            from phase1_parse_pgn import parse_all_pgn_files
+
         result = run_phase("Phase 1b — Parsing PGN files",
             parse_all_pgn_files, progress, status, 22,
             pgn_dir='data/raw_pgn', player_username=username,
@@ -259,7 +276,11 @@ if run_button:
 
     # Phase 2 — Engine evaluation
     if not failed:
-        import phase2_engine_eval as p2
+        try:
+            import src.phase2_engine_eval as p2
+        except ImportError:
+            import phase2_engine_eval as p2
+
         p2.MODE          = mode_key
         p2.MAX_GAMES     = max_games
         p2.EVAL_TIME     = eval_time
@@ -273,7 +294,11 @@ if run_button:
 
     # Phase 3 — Feature engineering
     if not failed:
-        from phase3_feature_engineering import add_features
+        try:
+            from src.phase3_feature_engineering import add_features
+        except ImportError:
+            from phase3_feature_engineering import add_features
+
         result = run_phase("Phase 3 — Extracting position features",
             add_features, progress, status, 72,
             evaluated_path=evaluated_path(username),
@@ -283,7 +308,11 @@ if run_button:
 
     # Phase 4 — Taxonomy
     if not failed:
-        from phase4_taxonomy import add_detailed_taxonomy
+        try:
+            from src.phase4_taxonomy import add_detailed_taxonomy
+        except ImportError:
+            from phase4_taxonomy import add_detailed_taxonomy
+
         result = run_phase(f"Phase 4 — Classifying mistakes ({mode_key} mode)",
             add_detailed_taxonomy, progress, status, 83,
             features_path=features_path(username),
@@ -295,7 +324,11 @@ if run_button:
     if not failed:
         import matplotlib
         matplotlib.use('Agg')
-        from phase5_analytics import load_data, print_deep_report, plot_focused_dashboard
+        try:
+            from src.phase5_analytics import load_data, print_deep_report, plot_focused_dashboard
+        except ImportError:
+            from phase5_analytics import load_data, print_deep_report, plot_focused_dashboard
+
         try:
             status.markdown("⏳ **Phase 5 — Building analytics**")
             df_loaded = load_data(categorized_path(username))
@@ -308,12 +341,17 @@ if run_button:
 
     # Phase 6 — Recommendations
     if not failed:
-        from phase6_recommendations import run_recommendations
+        try:
+            from src.phase6_recommendations import run_recommendations
+        except ImportError:
+            from phase6_recommendations import run_recommendations
+
         result = run_phase("Phase 6 — Generating coaching report",
             run_recommendations, progress, status, 100,
             data_path=categorized_path(username), username=username)
         if result is None:
             failed = True
+
 
     if not failed:
         status.markdown("✅ **Analysis complete!**")

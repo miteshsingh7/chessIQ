@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Data & models
+data/
+models/
+
+# Config with secrets
+chesslens_config.json
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE & Agents
+.vscode/
+.idea/
+*.swp
+*.swo
+node_modules/
+.agents/
+
